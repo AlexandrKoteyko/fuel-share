@@ -6,7 +6,13 @@ const supabaseClient =
         SUPABASE_URL,
         SUPABASE_KEY
     );
+const urlParams =
+    new URLSearchParams(
+        window.location.search
+    );
 
+const friendToken =
+    urlParams.get("friend");
 console.log("SUPABASE URL:", SUPABASE_URL);
 
 console.log(
@@ -70,33 +76,35 @@ closeModal.addEventListener(
 
 async function loadTrips() {
 
+    let query =
+        supabaseClient
+            .from("trips")
+            .select(`
+                id,
+                friend_id,
+                trip_date,
+                amount,
+                comment,
+                created_at,
+                friends (
+                    id,
+                    name,
+                    slug,
+                    public_token
+                )
+            `)
+            .order(
+                "trip_date",
+                {
+                    ascending: false
+                }
+            );
+
+
     const {
         data,
         error
-    } = await supabaseClient
-
-        .from("trips")
-
-        .select(`
-            id,
-            friend_id,
-            trip_date,
-            amount,
-            comment,
-            created_at,
-            friends (
-                id,
-                name,
-                slug
-            )
-        `)
-
-        .order(
-            "trip_date",
-            {
-                ascending: false
-            }
-        );
+    } = await query;
 
 
     if (error) {
@@ -107,19 +115,58 @@ async function loadTrips() {
         );
 
         tripsList.innerHTML =
-            "Помилка завантаження";
+            "Помилка завантаження.";
 
         return;
     }
 
 
-    renderTrips(data);
+    let filteredTrips = data;
 
-    renderFriends(data);
 
-    calculateTotal(data);
+    /*
+     * Якщо в URL є ?friend=...
+     * показуємо тільки цього друга
+     */
+
+    if (friendToken) {
+
+        filteredTrips =
+            data.filter(
+                trip =>
+                    trip.friends &&
+                    trip.friends.public_token ===
+                    friendToken
+            );
+
+    }
+
+
+    calculateTotal(
+        filteredTrips
+    );
+
+
+    if (friendToken) {
+
+        renderSingleFriend(
+            filteredTrips
+        );
+
+    } else {
+
+        renderFriends(
+            filteredTrips
+        );
+
+    }
+
+
+    renderTrips(
+        filteredTrips
+    );
+
 }
-
 
 function calculateTotal(trips) {
 
@@ -215,7 +262,60 @@ function renderFriends(trips) {
             .join("");
 }
 
+function renderSingleFriend(
+    trips
+) {
 
+    if (
+        trips.length === 0
+    ) {
+
+        friendsList.innerHTML = `
+            <p>
+                Посилання недійсне
+                або друга не знайдено.
+            </p>
+        `;
+
+        return;
+    }
+
+
+    const friend =
+        trips[0].friends;
+
+
+    const total =
+        trips.reduce(
+            (sum, trip) =>
+                sum +
+                Number(trip.amount),
+            0
+        );
+
+
+    friendsList.innerHTML = `
+
+        <div class="friend-profile">
+
+            <div class="friend-profile-name">
+                👤 ${escapeHtml(
+                    friend.name
+                )}
+            </div>
+
+            <div class="friend-profile-label">
+                Ваш борг
+            </div>
+
+            <div class="friend-profile-debt">
+                ${total.toFixed(2)} €
+            </div>
+
+        </div>
+
+    `;
+}
 function renderTrips(trips) {
 
     if (trips.length === 0) {
