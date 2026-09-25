@@ -522,7 +522,7 @@ function renderFriends(
                 friend => {
 
                     const link =
-                        `${window.location.origin}/#friend=${encodeURIComponent(
+                        `${window.location.origin}/fuel-share/#friend=${encodeURIComponent(
                             friend.public_token
                         )}`;
 
