@@ -480,18 +480,34 @@ function renderFriends(
                 friend => `
                     <div class="friend-row">
 
-                        <span>
-                            ${escapeHtml(
-                                friend.name
-                            )}
-                        </span>
-
+                        <div>
+                    
+                            <div class="friend-name">
+                                ${escapeHtml(
+                                    friend.name
+                                )}
+                            </div>
+                    
+                            <div class="friend-link">
+                    
+                                <button
+                                    class="copy-link-button"
+                                    onclick="copyFriendLink('${friend.public_token}')"
+                                >
+                                    🔗 Копіювати посилання
+                                </button>
+                    
+                            </div>
+                    
+                        </div>
+                    
+                    
                         <strong>
-                            ${friend.amount.toFixed(
-                                2
-                            )} €
+                    
+                            ${friend.amount.toFixed(2)} €
+                    
                         </strong>
-
+                    
                     </div>
                 `
             )
@@ -813,7 +829,37 @@ function escapeHtml(
         );
 
 }
+async function copyFriendLink(
+    token
+) {
 
+    const link =
+        `${window.location.origin}/?friend=${token}`;
+
+
+    try {
+
+        await navigator.clipboard.writeText(
+            link
+        );
+
+
+        alert(
+            "Посилання скопійовано!"
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        prompt(
+            "Скопіюй посилання:",
+            link
+        );
+
+    }
+
+}
 
 // ===============================
 // START
