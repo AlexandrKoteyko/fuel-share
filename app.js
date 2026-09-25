@@ -44,6 +44,8 @@ const tripForm =
 
 const tripDate =
     document.getElementById("tripDate");
+const friendSelect =
+    document.getElementById("friend");
 
 
 tripDate.value =
@@ -75,7 +77,19 @@ async function loadTrips() {
 
         .from("trips")
 
-        .select("*")
+        .select(`
+            id,
+            friend_id,
+            trip_date,
+            amount,
+            comment,
+            created_at,
+            friends (
+                id,
+                name,
+                slug
+            )
+        `)
 
         .order(
             "trip_date",
@@ -87,7 +101,10 @@ async function loadTrips() {
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            "Помилка завантаження:",
+            error
+        );
 
         tripsList.innerHTML =
             "Помилка завантаження";
@@ -126,21 +143,40 @@ function renderFriends(trips) {
 
     for (const trip of trips) {
 
-        if (!debts[trip.friend]) {
-            debts[trip.friend] = 0;
+        const friend =
+            trip.friends;
+
+
+        if (!friend) {
+            continue;
         }
 
-        debts[trip.friend] +=
+
+        if (!debts[friend.id]) {
+
+            debts[friend.id] = {
+
+                name: friend.name,
+
+                slug: friend.slug,
+
+                amount: 0
+
+            };
+
+        }
+
+
+        debts[friend.id].amount +=
             Number(trip.amount);
     }
 
 
-    const names =
-        Object.keys(debts)
-            .sort();
+    const friends =
+        Object.values(debts);
 
 
-    if (names.length === 0) {
+    if (friends.length === 0) {
 
         friendsList.innerHTML =
             "<p>Поки немає записів.</p>";
@@ -150,18 +186,26 @@ function renderFriends(trips) {
 
 
     friendsList.innerHTML =
-        names
-            .map(name => {
+        friends
+            .map(friend => {
 
                 return `
                     <div class="friend-row">
 
                         <span class="friend-name">
-                            ${escapeHtml(name)}
+
+                            <a href="/${friend.slug}">
+                                ${escapeHtml(
+                                    friend.name
+                                )}
+                            </a>
+
                         </span>
 
                         <span class="friend-debt">
-                            ${debts[name].toFixed(2)} €
+
+                            ${friend.amount.toFixed(2)} €
+
                         </span>
 
                     </div>
@@ -197,15 +241,23 @@ function renderTrips(trips) {
                     );
 
 
+                const friendName =
+                    trip.friends
+                        ? trip.friends.name
+                        : "Невідомий";
+
+
                 return `
                     <div class="trip">
 
                         <div class="trip-info">
 
                             <div class="trip-friend">
+
                                 ${escapeHtml(
-                                    trip.friend
+                                    friendName
                                 )}
+
                             </div>
 
                             <div class="trip-meta">
@@ -240,7 +292,6 @@ function renderTrips(trips) {
             .join("");
 }
 
-
 function escapeHtml(value) {
 
     return String(value)
@@ -264,10 +315,12 @@ tripForm.addEventListener(
         event.preventDefault();
 
 
-        const friend =
-            document.getElementById(
-                "friend"
-            ).value.trim();
+        const friendId =
+            Number(
+                document.getElementById(
+                    "friend"
+                ).value
+            );
 
 
         const date =
@@ -290,10 +343,14 @@ tripForm.addEventListener(
             ).value.trim();
 
 
-        if (!friend || !date || amount <= 0) {
+        if (
+            !friendId ||
+            !date ||
+            amount <= 0
+        ) {
 
             alert(
-                "Заповни ім'я, дату та суму."
+                "Заповни друга, дату та суму."
             );
 
             return;
@@ -308,7 +365,7 @@ tripForm.addEventListener(
 
             .insert({
 
-                friend: friend,
+                friend_id: friendId,
 
                 trip_date: date,
 
@@ -321,7 +378,10 @@ tripForm.addEventListener(
 
         if (error) {
 
-            console.error(error);
+            console.error(
+                "Помилка додавання:",
+                error
+            );
 
             alert(
                 "Не вдалося додати запис."
@@ -349,6 +409,47 @@ tripForm.addEventListener(
 
     }
 );
+async function loadFriends() {
 
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("friends")
+        .select("id, name, slug")
+        .order("id");
+
+
+    if (error) {
+
+        console.error(
+            "Помилка завантаження друзів:",
+            error
+        );
+
+        return;
+    }
+
+
+    friendSelect.innerHTML =
+        '<option value="">Оберіть друга</option>';
+
+
+    data.forEach(friend => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = friend.id;
+
+        option.textContent =
+            friend.name;
+
+        friendSelect.appendChild(option);
+
+    });
+}
+
+loadFriends();
 
 loadTrips();
