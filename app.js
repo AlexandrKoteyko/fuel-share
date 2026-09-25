@@ -244,7 +244,7 @@ function renderFriends(trips) {
 
                         <span class="friend-name">
 
-                            <a href="/${friend.slug}">
+                            <a href="/?friend=${friend.public_token}">
                                 ${escapeHtml(
                                     friend.name
                                 )}
