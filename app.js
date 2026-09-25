@@ -6,13 +6,13 @@ const supabaseClient =
         SUPABASE_URL,
         SUPABASE_KEY
     );
-const urlParams =
+const hashParams =
     new URLSearchParams(
-        window.location.search
+        window.location.hash.substring(1)
     );
 
 const friendToken =
-    urlParams.get("friend");
+    hashParams.get("friend");
 const friendsTitle =
     document.getElementById(
         "friendsTitle"
@@ -245,7 +245,7 @@ function renderFriends(trips) {
             .map(friend => {
 
                 const link =
-                    `/?friend=${encodeURIComponent(
+                    `${window.location.origin}/#friend=${encodeURIComponent(
                         friend.public_token
                     )}`;
 
