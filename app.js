@@ -411,13 +411,24 @@ tripForm.addEventListener(
 );
 async function loadFriends() {
 
+    console.log("🔄 Завантажую друзів...");
+
+
     const {
         data,
         error
     } = await supabaseClient
+
         .from("friends")
+
         .select("id, name, slug")
+
         .order("id");
+
+
+    console.log("👥 Friends data:", data);
+
+    console.log("❌ Friends error:", error);
 
 
     if (error) {
@@ -440,14 +451,26 @@ async function loadFriends() {
         const option =
             document.createElement("option");
 
-        option.value = friend.id;
+
+        option.value =
+            friend.id;
+
 
         option.textContent =
-            friend.name;
+            `${friend.name}`;
 
-        friendSelect.appendChild(option);
+
+        friendSelect.appendChild(
+            option
+        );
 
     });
+
+
+    console.log(
+        "✅ Друзів завантажено:",
+        data.length
+    );
 }
 
 loadFriends();
