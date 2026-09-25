@@ -1,9 +1,6 @@
-const SUPABASE_URL =
-    "https://hunapxoxqkkfvaqejwii.supabase.co";
+const SUPABASE_URL = "https://hunapxoxqkkfvaqejwii.supabase.co";
 
-
-const SUPABASE_KEY =
-    "ТУТ_ТВІЙ_SB_PUBLISHABLE_KEY";
+const SUPABASE_KEY = "sb_publishable_AkD-sMSpXyBW3Eb4taVQxg_zbi3es4B";
 
 
 const supabaseClient =
