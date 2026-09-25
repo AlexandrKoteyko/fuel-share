@@ -193,22 +193,26 @@ function renderFriends(trips) {
 
     for (const trip of trips) {
 
-        const friend =
-            trip.friends;
-
+        const friend = trip.friends;
 
         if (!friend) {
             continue;
         }
 
 
-        if (!debts[friend.id]) {
+        const id = friend.id;
 
-            debts[friend.id] = {
+
+        if (!debts[id]) {
+
+            debts[id] = {
 
                 name: friend.name,
 
                 slug: friend.slug,
+
+                public_token:
+                    friend.public_token,
 
                 amount: 0
 
@@ -217,8 +221,9 @@ function renderFriends(trips) {
         }
 
 
-        debts[friend.id].amount +=
+        debts[id].amount +=
             Number(trip.amount);
+
     }
 
 
@@ -239,18 +244,25 @@ function renderFriends(trips) {
         friends
             .map(friend => {
 
+                const link =
+                    `/?friend=${encodeURIComponent(
+                        friend.public_token
+                    )}`;
+
+
                 return `
                     <div class="friend-row">
 
                         <span class="friend-name">
 
-                            <a href="/?friend=${friend.public_token}">
+                            <a href="${link}">
                                 ${escapeHtml(
                                     friend.name
                                 )}
                             </a>
 
                         </span>
+
 
                         <span class="friend-debt">
 
