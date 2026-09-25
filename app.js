@@ -13,7 +13,10 @@ const urlParams =
 
 const friendToken =
     urlParams.get("friend");
-console.log("SUPABASE URL:", SUPABASE_URL);
+const friendsTitle =
+    document.getElementById(
+        "friendsTitle"
+    );
 
 console.log(
     "KEY:",
@@ -574,5 +577,11 @@ async function loadFriends() {
 }
 
 loadFriends();
+if (friendToken) {
 
+    friendsTitle.innerHTML = `
+        <h2>👤 Ваш баланс</h2>
+    `;
+
+}
 loadTrips();
