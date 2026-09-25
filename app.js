@@ -6,6 +6,12 @@ const supabaseClient =
         SUPABASE_URL,
         SUPABASE_KEY
     );
+
+
+// =========================================================
+// FRIEND TOKEN
+// =========================================================
+
 const hashParams =
     new URLSearchParams(
         window.location.hash.substring(1)
@@ -13,101 +19,153 @@ const hashParams =
 
 const friendToken =
     hashParams.get("friend");
-const friendsTitle =
-    document.getElementById(
-        "friendsTitle"
-    );
-
-console.log(
-    "KEY:",
-    SUPABASE_KEY.substring(0, 20) + "..."
-);
-
-console.log(
-    "Supabase client:",
-    supabaseClient
-);
 
 
+// =========================================================
+// ELEMENTS
+// =========================================================
+
+const welcomeSection =
+    document.getElementById("welcomeSection");
+
+const totalCard =
+    document.getElementById("totalCard");
+
+const totalTitle =
+    document.getElementById("totalTitle");
 
 const totalDebt =
     document.getElementById("totalDebt");
 
+const totalSubtitle =
+    document.getElementById("totalSubtitle");
+
+const friendsSection =
+    document.getElementById("friendsSection");
+
+const friendsTitle =
+    document.getElementById("friendsTitle");
+
 const friendsList =
     document.getElementById("friendsList");
+
+const historySection =
+    document.getElementById("historySection");
 
 const tripsList =
     document.getElementById("tripsList");
 
-const modal =
-    document.getElementById("modal");
-
 const openModal =
     document.getElementById("openModal");
 
-const closeModal =
-    document.getElementById("closeModal");
-
-const tripForm =
-    document.getElementById("tripForm");
-
-const tripDate =
-    document.getElementById("tripDate");
-const friendSelect =
-    document.getElementById("friend");
+const modal =
+    document.getElementById("modal");
 
 
-tripDate.value =
-    new Date().toISOString().split("T")[0];
+// =========================================================
+// INITIAL PAGE STATE
+// =========================================================
+
+function setupPage() {
+
+    /*
+     * Немає персонального токена.
+     *
+     * Це звичайний відвідувач.
+     */
+
+    if (!friendToken) {
+
+        // Показуємо welcome
+        welcomeSection.classList.remove("hidden");
 
 
-openModal.addEventListener(
-    "click",
-    () => {
-        modal.classList.remove("hidden");
+        // Ховаємо всі фінансові дані
+        totalCard.classList.add("hidden");
+
+        friendsSection.classList.add("hidden");
+
+        historySection.classList.add("hidden");
+
+
+        // Ховаємо кнопку додавання
+        openModal.classList.add("hidden");
+
+
+        return;
     }
-);
 
 
-closeModal.addEventListener(
-    "click",
-    () => {
-        modal.classList.add("hidden");
-    }
-);
+    /*
+     * Є friendToken.
+     *
+     * Це персональна сторінка друга.
+     */
 
+    welcomeSection.classList.add("hidden");
+
+    totalCard.classList.remove("hidden");
+
+    friendsSection.classList.remove("hidden");
+
+    historySection.classList.remove("hidden");
+
+
+    // Друг не може додавати поїздки
+    openModal.classList.add("hidden");
+
+
+    friendsTitle.innerHTML = `
+        <h2>👤 Ваш баланс</h2>
+    `;
+
+}
+
+
+// =========================================================
+// LOAD TRIPS
+// =========================================================
 
 async function loadTrips() {
 
-    let query =
-        supabaseClient
-            .from("trips")
-            .select(`
-                id,
-                friend_id,
-                trip_date,
-                amount,
-                comment,
-                created_at,
-                friends (
-                    id,
-                    name,
-                    slug,
-                    public_token
-                )
-            `)
-            .order(
-                "trip_date",
-                {
-                    ascending: false
-                }
-            );
+    /*
+     * Якщо немає friendToken,
+     * взагалі НЕ завантажуємо борги.
+     */
+
+    if (!friendToken) {
+        return;
+    }
 
 
     const {
         data,
         error
-    } = await query;
+    } = await supabaseClient
+
+        .from("trips")
+
+        .select(`
+            id,
+            friend_id,
+            trip_date,
+            amount,
+            comment,
+            created_at,
+            friends (
+                id,
+                name,
+                slug,
+                public_token
+            )
+        `)
+
+        .order(
+            "trip_date",
+            {
+                ascending: false
+            }
+        );
 
 
     if (error) {
@@ -124,46 +182,40 @@ async function loadTrips() {
     }
 
 
-    let filteredTrips = data;
+    // =====================================================
+    // FILTER BY TOKEN
+    // =====================================================
 
-
-    /*
-     * Якщо в URL є ?friend=...
-     * показуємо тільки цього друга
-     */
-
-    if (friendToken) {
-
-        filteredTrips =
-            data.filter(
-                trip =>
-                    trip.friends &&
-                    trip.friends.public_token ===
+    const filteredTrips =
+        data.filter(
+            trip =>
+                trip.friends &&
+                trip.friends.public_token ===
                     friendToken
-            );
+        );
 
-    }
 
+    // =====================================================
+    // TOTAL
+    // =====================================================
 
     calculateTotal(
         filteredTrips
     );
 
 
-    if (friendToken) {
+    // =====================================================
+    // FRIEND PROFILE
+    // =====================================================
 
-        renderSingleFriend(
-            filteredTrips
-        );
+    renderSingleFriend(
+        filteredTrips
+    );
 
-    } else {
 
-        renderFriends(
-            filteredTrips
-        );
-
-    }
-
+    // =====================================================
+    // HISTORY
+    // =====================================================
 
     renderTrips(
         filteredTrips
@@ -171,12 +223,18 @@ async function loadTrips() {
 
 }
 
+
+// =========================================================
+// CALCULATE TOTAL
+// =========================================================
+
 function calculateTotal(trips) {
 
     const total =
         trips.reduce(
             (sum, trip) =>
-                sum + Number(trip.amount),
+                sum +
+                Number(trip.amount),
             0
         );
 
@@ -186,96 +244,9 @@ function calculateTotal(trips) {
 }
 
 
-function renderFriends(trips) {
-
-    const debts = {};
-
-
-    for (const trip of trips) {
-
-        const friend = trip.friends;
-
-        if (!friend) {
-            continue;
-        }
-
-
-        const id = friend.id;
-
-
-        if (!debts[id]) {
-
-            debts[id] = {
-
-                name: friend.name,
-
-                slug: friend.slug,
-
-                public_token:
-                    friend.public_token,
-
-                amount: 0
-
-            };
-
-        }
-
-
-        debts[id].amount +=
-            Number(trip.amount);
-
-    }
-
-
-    const friends =
-        Object.values(debts);
-
-
-    if (friends.length === 0) {
-
-        friendsList.innerHTML =
-            "<p>Поки немає записів.</p>";
-
-        return;
-    }
-
-
-    friendsList.innerHTML =
-        friends
-            .map(friend => {
-
-                const link =
-                    `${window.location.origin}/fuel-share/#friend=${encodeURIComponent(
-                        friend.public_token
-                    )}`;
-
-
-                return `
-                    <div class="friend-row">
-
-                        <span class="friend-name">
-
-                            <a href="${link}">
-                                ${escapeHtml(
-                                    friend.name
-                                )}
-                            </a>
-
-                        </span>
-
-
-                        <span class="friend-debt">
-
-                            ${friend.amount.toFixed(2)} €
-
-                        </span>
-
-                    </div>
-                `;
-
-            })
-            .join("");
-}
+// =========================================================
+// SINGLE FRIEND
+// =========================================================
 
 function renderSingleFriend(
     trips
@@ -286,11 +257,14 @@ function renderSingleFriend(
     ) {
 
         friendsList.innerHTML = `
-            <p>
+            <div class="empty">
                 Посилання недійсне
                 або друга не знайдено.
-            </p>
+            </div>
         `;
+
+        totalDebt.textContent =
+            "—";
 
         return;
     }
@@ -314,286 +288,161 @@ function renderSingleFriend(
         <div class="friend-profile">
 
             <div class="friend-profile-name">
-                👤 ${escapeHtml(
+
+                👤
+                ${escapeHtml(
                     friend.name
                 )}
+
             </div>
+
 
             <div class="friend-profile-label">
                 Ваш борг
             </div>
 
+
             <div class="friend-profile-debt">
+
                 ${total.toFixed(2)} €
+
             </div>
 
         </div>
 
     `;
+
 }
+
+
+// =========================================================
+// HISTORY
+// =========================================================
+
 function renderTrips(trips) {
 
-    if (trips.length === 0) {
+    if (
+        trips.length === 0
+    ) {
 
-        tripsList.innerHTML =
-            "<p>Поки немає поїздок.</p>";
+        tripsList.innerHTML = `
+            <div class="empty">
+                Поки немає поїздок.
+            </div>
+        `;
 
         return;
     }
 
 
     tripsList.innerHTML =
+
         trips
-            .map(trip => {
 
-                const date =
-                    new Date(
-                        trip.trip_date +
-                        "T00:00:00"
-                    )
-                    .toLocaleDateString(
-                        "uk-UA"
-                    );
+            .map(
+                trip => {
 
-
-                const friendName =
-                    trip.friends
-                        ? trip.friends.name
-                        : "Невідомий";
+                    const date =
+                        new Date(
+                            trip.trip_date +
+                            "T00:00:00"
+                        )
+                        .toLocaleDateString(
+                            "uk-UA"
+                        );
 
 
-                return `
-                    <div class="trip">
+                    return `
 
-                        <div class="trip-info">
+                        <div class="trip">
 
-                            <div class="trip-friend">
+                            <div class="trip-info">
 
-                                ${escapeHtml(
-                                    friendName
-                                )}
+                                <div class="trip-friend">
+
+                                    ${escapeHtml(
+                                        trip.friends.name
+                                    )}
+
+                                </div>
+
+
+                                <div class="trip-meta">
+
+                                    ${date}
+
+                                    ${
+                                        trip.comment
+                                            ? " · " +
+                                              escapeHtml(
+                                                  trip.comment
+                                              )
+                                            : ""
+                                    }
+
+                                </div>
 
                             </div>
 
-                            <div class="trip-meta">
 
-                                ${date}
+                            <div class="trip-amount">
 
-                                ${
-                                    trip.comment
-                                        ? " · " +
-                                          escapeHtml(
-                                              trip.comment
-                                          )
-                                        : ""
-                                }
+                                +${Number(
+                                    trip.amount
+                                ).toFixed(2)} €
 
                             </div>
 
                         </div>
 
-                        <div class="trip-amount">
+                    `;
 
-                            +${Number(
-                                trip.amount
-                            ).toFixed(2)} €
+                }
+            )
 
-                        </div>
-
-                    </div>
-                `;
-
-            })
             .join("");
 }
+
+
+// =========================================================
+// ESCAPE HTML
+// =========================================================
 
 function escapeHtml(value) {
 
     return String(value)
 
-        .replaceAll("&", "&amp;")
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
 
-        .replaceAll("<", "&lt;")
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
 
-        .replaceAll(">", "&gt;")
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
 
-        .replaceAll('"', "&quot;")
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
 
-        .replaceAll("'", "&#039;");
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 }
 
 
-tripForm.addEventListener(
-    "submit",
-    async (event) => {
+// =========================================================
+// START
+// =========================================================
 
-        event.preventDefault();
+setupPage();
 
-
-        const friendId =
-            Number(
-                document.getElementById(
-                    "friend"
-                ).value
-            );
-
-
-        const date =
-            document.getElementById(
-                "tripDate"
-            ).value;
-
-
-        const amount =
-            Number(
-                document.getElementById(
-                    "amount"
-                ).value
-            );
-
-
-        const comment =
-            document.getElementById(
-                "comment"
-            ).value.trim();
-
-
-        if (
-            !friendId ||
-            !date ||
-            amount <= 0
-        ) {
-
-            alert(
-                "Заповни друга, дату та суму."
-            );
-
-            return;
-        }
-
-
-        const {
-            error
-        } = await supabaseClient
-
-            .from("trips")
-
-            .insert({
-
-                friend_id: friendId,
-
-                trip_date: date,
-
-                amount: amount,
-
-                comment: comment
-
-            });
-
-
-        if (error) {
-
-            console.error(
-                "Помилка додавання:",
-                error
-            );
-
-            alert(
-                "Не вдалося додати запис."
-            );
-
-            return;
-        }
-
-
-        tripForm.reset();
-
-
-        tripDate.value =
-            new Date()
-                .toISOString()
-                .split("T")[0];
-
-
-        modal.classList.add(
-            "hidden"
-        );
-
-
-        await loadTrips();
-
-    }
-);
-async function loadFriends() {
-
-    console.log("🔄 Завантажую друзів...");
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("friends")
-
-        .select("id, name, slug")
-
-        .order("id");
-
-
-    console.log("👥 Friends data:", data);
-
-    console.log("❌ Friends error:", error);
-
-
-    if (error) {
-
-        console.error(
-            "Помилка завантаження друзів:",
-            error
-        );
-
-        return;
-    }
-
-
-    friendSelect.innerHTML =
-        '<option value="">Оберіть друга</option>';
-
-
-    data.forEach(friend => {
-
-        const option =
-            document.createElement("option");
-
-
-        option.value =
-            friend.id;
-
-
-        option.textContent =
-            `${friend.name}`;
-
-
-        friendSelect.appendChild(
-            option
-        );
-
-    });
-
-
-    console.log(
-        "✅ Друзів завантажено:",
-        data.length
-    );
-}
-
-loadFriends();
-if (friendToken) {
-
-    friendsTitle.innerHTML = `
-        <h2>👤 Ваш баланс</h2>
-    `;
-
-}
 loadTrips();
