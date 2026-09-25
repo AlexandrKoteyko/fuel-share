@@ -7,12 +7,6 @@ console.log(
     SUPABASE_KEY.substring(0, 20) + "..."
 );
 
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
-
 console.log("Supabase client:", supabaseClient);
 const supabaseClient =
     window.supabase.createClient(
