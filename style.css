@@ -417,3 +417,35 @@ input:focus {
     }
 
 }
+.delete-button {
+    border: none;
+
+    background: #f1f1f1;
+
+    border-radius: 10px;
+
+    padding: 8px 10px;
+
+    margin-left: 8px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+}
+
+
+.delete-button:active {
+    transform: scale(0.95);
+}
+
+
+.hidden {
+    display: none !important;
+}
+
+
+#loginError {
+    color: #c62828;
+
+    margin-top: 15px;
+}
