@@ -869,7 +869,7 @@ async function copyFriendLink(
 ) {
 
     const link =
-        `${window.location.origin}/#friend=${encodeURIComponent(
+        `${window.location.origin}/fuel-share/#friend=${encodeURIComponent(
             token
         )}`;
 
