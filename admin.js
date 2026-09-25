@@ -2,7 +2,6 @@ const SUPABASE_URL = "https://hunapxoxqkkfvaqejwii.supabase.co";
 
 const SUPABASE_KEY = "sb_publishable_AkD-sMSpXyBW3Eb4taVQxg_zbi3es4B";
 
-
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
@@ -19,60 +18,50 @@ const loginSection =
         "loginSection"
     );
 
-
 const adminSection =
     document.getElementById(
         "adminSection"
     );
-
 
 const loginForm =
     document.getElementById(
         "loginForm"
     );
 
-
 const loginError =
     document.getElementById(
         "loginError"
     );
-
 
 const tripForm =
     document.getElementById(
         "tripForm"
     );
 
-
 const friendSelect =
     document.getElementById(
         "friend"
     );
-
 
 const friendsList =
     document.getElementById(
         "friendsList"
     );
 
-
 const tripsList =
     document.getElementById(
         "tripsList"
     );
-
 
 const totalDebt =
     document.getElementById(
         "totalDebt"
     );
 
-
 const logoutButton =
     document.getElementById(
         "logoutButton"
     );
-
 
 const tripDate =
     document.getElementById(
@@ -100,35 +89,34 @@ loginForm.addEventListener(
 
         event.preventDefault();
 
-
         loginError.textContent = "";
-
 
         const email =
             document.getElementById(
                 "email"
             ).value.trim();
 
-
         const password =
             document.getElementById(
                 "password"
             ).value;
 
-
         const {
             data,
             error
-        } = await supabaseClient.auth
-            .signInWithPassword({
-                email,
-                password
-            });
-
+        } =
+            await supabaseClient.auth
+                .signInWithPassword({
+                    email: email,
+                    password: password
+                });
 
         if (error) {
 
-            console.error(error);
+            console.error(
+                "Login error:",
+                error
+            );
 
             loginError.textContent =
                 "Неправильний email або пароль.";
@@ -136,12 +124,10 @@ loginForm.addEventListener(
             return;
         }
 
-
         console.log(
             "Успішний вхід:",
             data.user
         );
-
 
         await checkAdmin();
 
@@ -163,13 +149,18 @@ async function checkAdmin() {
         await supabaseClient.auth
             .getUser();
 
-
     if (!user) {
 
         showLogin();
 
         return;
     }
+
+    console.log(
+        "Поточний користувач:",
+        user.id,
+        user.email
+    );
 
 
     const {
@@ -197,6 +188,9 @@ async function checkAdmin() {
             error
         );
 
+        loginError.textContent =
+            "Не вдалося перевірити права адміністратора.";
+
         showLogin();
 
         return;
@@ -204,6 +198,11 @@ async function checkAdmin() {
 
 
     if (!data) {
+
+        console.error(
+            "Користувача немає в admins:",
+            user.id
+        );
 
         alert(
             "Цей акаунт не має прав адміністратора."
@@ -218,8 +217,12 @@ async function checkAdmin() {
     }
 
 
-    showAdmin();
+    console.log(
+        "✅ Адміністратор підтверджений"
+    );
 
+
+    showAdmin();
 
     await loadFriends();
 
@@ -238,7 +241,6 @@ function showLogin() {
         "hidden"
     );
 
-
     adminSection.classList.add(
         "hidden"
     );
@@ -256,7 +258,6 @@ function showAdmin() {
         "hidden"
     );
 
-
     adminSection.classList.remove(
         "hidden"
     );
@@ -270,29 +271,41 @@ function showAdmin() {
 
 async function loadFriends() {
 
+    console.log(
+        "🔄 Завантаження друзів..."
+    );
+
+
     const {
         data,
         error
-    } = await supabaseClient
+    } =
+        await supabaseClient
 
-        .from("friends")
+            .from("friends")
 
-        .select(
-            "id, name, slug"
-        )
+            .select(
+                "id, name, slug, public_token"
+            )
 
-        .order("id");
+            .order("id");
 
 
     if (error) {
 
         console.error(
-            "Помилка друзів:",
+            "Помилка завантаження друзів:",
             error
         );
 
         return;
     }
+
+
+    console.log(
+        "👥 Друзі:",
+        data
+    );
 
 
     friendSelect.innerHTML =
@@ -307,14 +320,11 @@ async function loadFriends() {
                     "option"
                 );
 
-
             option.value =
                 friend.id;
 
-
             option.textContent =
                 friend.name;
-
 
             friendSelect.appendChild(
                 option
@@ -332,43 +342,60 @@ async function loadFriends() {
 
 async function loadTrips() {
 
+    console.log(
+        "🔄 Завантаження поїздок..."
+    );
+
+
     const {
         data,
         error
-    } = await supabaseClient
+    } =
+        await supabaseClient
 
-        .from("trips")
+            .from("trips")
 
-        .select(`
-            id,
-            friend_id,
-            trip_date,
-            amount,
-            comment,
-            friends (
+            .select(`
                 id,
-                name,
-                slug
-            )
-        `)
+                friend_id,
+                trip_date,
+                amount,
+                comment,
+                created_at,
+                friends (
+                    id,
+                    name,
+                    slug,
+                    public_token
+                )
+            `)
 
-        .order(
-            "trip_date",
-            {
-                ascending: false
-            }
-        );
+            .order(
+                "trip_date",
+                {
+                    ascending: false
+                }
+            );
 
 
     if (error) {
 
         console.error(
-            "Помилка поїздок:",
+            "Помилка завантаження поїздок:",
             error
         );
 
+        tripsList.innerHTML =
+            "<p>Помилка завантаження.</p>";
+
         return;
     }
+
+
+    console.log(
+        "🚗 Поїздки:",
+        data
+    );
 
 
     calculateTotal(data);
@@ -381,7 +408,7 @@ async function loadTrips() {
 
 
 // ===============================
-// TOTAL
+// CALCULATE TOTAL
 // ===============================
 
 function calculateTotal(
@@ -393,11 +420,16 @@ function calculateTotal(
             (
                 sum,
                 trip
-            ) =>
-                sum +
-                Number(
-                    trip.amount
-                ),
+            ) => {
+
+                return (
+                    sum +
+                    Number(
+                        trip.amount
+                    )
+                );
+
+            },
             0
         );
 
@@ -409,7 +441,7 @@ function calculateTotal(
 
 
 // ===============================
-// FRIENDS
+// RENDER FRIENDS
 // ===============================
 
 function renderFriends(
@@ -428,19 +460,29 @@ function renderFriends(
         }
 
 
+        const friend =
+            trip.friends;
+
+
         const id =
-            trip.friends.id;
+            friend.id;
 
 
         if (!debts[id]) {
 
             debts[id] = {
 
+                id:
+                    friend.id,
+
                 name:
-                    trip.friends.name,
+                    friend.name,
 
                 slug:
-                    trip.friends.slug,
+                    friend.slug,
+
+                public_token:
+                    friend.public_token,
 
                 amount: 0
 
@@ -477,39 +519,56 @@ function renderFriends(
     friendsList.innerHTML =
         friends
             .map(
-                friend => `
-                    <div class="friend-row">
+                friend => {
 
-                        <div>
-                    
-                            <div class="friend-name">
-                                ${escapeHtml(
-                                    friend.name
-                                )}
+                    const link =
+                        `${window.location.origin}/#friend=${encodeURIComponent(
+                            friend.public_token
+                        )}`;
+
+
+                    return `
+
+                        <div class="friend-row">
+
+                            <div>
+
+                                <div class="friend-name">
+
+                                    ${escapeHtml(
+                                        friend.name
+                                    )}
+
+                                </div>
+
+
+                                <div class="friend-link">
+
+                                    <button
+                                        class="copy-link-button"
+                                        onclick="copyFriendLink('${friend.public_token}')"
+                                    >
+                                        🔗 Копіювати посилання
+                                    </button>
+
+                                </div>
+
                             </div>
-                    
-                            <div class="friend-link">
-                    
-                                <button
-                                    class="copy-link-button"
-                                    onclick="copyFriendLink('${friend.public_token}')"
-                                >
-                                    🔗 Копіювати посилання
-                                </button>
-                    
-                            </div>
-                    
+
+
+                            <strong>
+
+                                ${friend.amount.toFixed(
+                                    2
+                                )} €
+
+                            </strong>
+
                         </div>
-                    
-                    
-                        <strong>
-                    
-                            ${friend.amount.toFixed(2)} €
-                    
-                        </strong>
-                    
-                    </div>
-                `
+
+                    `;
+
+                }
             )
             .join("");
 
@@ -517,7 +576,7 @@ function renderFriends(
 
 
 // ===============================
-// TRIPS
+// RENDER TRIPS
 // ===============================
 
 function renderTrips(
@@ -557,6 +616,7 @@ function renderTrips(
 
 
                     return `
+
                         <div class="trip">
 
                             <div class="trip-info">
@@ -568,6 +628,7 @@ function renderTrips(
                                     )}
 
                                 </div>
+
 
                                 <div class="trip-meta">
 
@@ -590,11 +651,13 @@ function renderTrips(
                             <div>
 
                                 <strong>
+
                                     +${Number(
                                         trip.amount
                                     ).toFixed(
                                         2
                                     )} €
+
                                 </strong>
 
 
@@ -608,6 +671,7 @@ function renderTrips(
                             </div>
 
                         </div>
+
                     `;
 
                 }
@@ -623,7 +687,7 @@ function renderTrips(
 
 tripForm.addEventListener(
     "submit",
-    async event => {
+    async (event) => {
 
         event.preventDefault();
 
@@ -666,6 +730,17 @@ tripForm.addEventListener(
         }
 
 
+        console.log(
+            "➕ Додаємо:",
+            {
+                friendId,
+                date,
+                amount,
+                comment
+            }
+        );
+
+
         const {
             error
         } =
@@ -697,13 +772,17 @@ tripForm.addEventListener(
                 error
             );
 
-
             alert(
                 "Не вдалося додати запис."
             );
 
             return;
         }
+
+
+        alert(
+            "Поїздку додано!"
+        );
 
 
         tripForm.reset();
@@ -722,7 +801,7 @@ tripForm.addEventListener(
 
 
 // ===============================
-// DELETE
+// DELETE TRIP
 // ===============================
 
 async function deleteTrip(
@@ -738,6 +817,12 @@ async function deleteTrip(
     if (!confirmed) {
         return;
     }
+
+
+    console.log(
+        "🗑️ Видаляємо:",
+        id
+    );
 
 
     const {
@@ -762,7 +847,6 @@ async function deleteTrip(
             error
         );
 
-
         alert(
             "Не вдалося видалити запис."
         );
@@ -772,6 +856,55 @@ async function deleteTrip(
 
 
     await loadTrips();
+
+}
+
+
+// ===============================
+// COPY FRIEND LINK
+// ===============================
+
+async function copyFriendLink(
+    token
+) {
+
+    const link =
+        `${window.location.origin}/#friend=${encodeURIComponent(
+            token
+        )}`;
+
+
+    console.log(
+        "🔗 Посилання:",
+        link
+    );
+
+
+    try {
+
+        await navigator.clipboard.writeText(
+            link
+        );
+
+
+        alert(
+            "Посилання скопійовано!"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Clipboard error:",
+            error
+        );
+
+
+        prompt(
+            "Скопіюй посилання:",
+            link
+        );
+
+    }
 
 }
 
@@ -794,7 +927,7 @@ logoutButton.addEventListener(
 
 
 // ===============================
-// HTML SECURITY
+// ESCAPE HTML
 // ===============================
 
 function escapeHtml(
@@ -829,37 +962,7 @@ function escapeHtml(
         );
 
 }
-async function copyFriendLink(
-    token
-) {
 
-    const link =
-        `${window.location.origin}/?friend=${token}`;
-
-
-    try {
-
-        await navigator.clipboard.writeText(
-            link
-        );
-
-
-        alert(
-            "Посилання скопійовано!"
-        );
-
-    } catch (error) {
-
-        console.error(error);
-
-        prompt(
-            "Скопіюй посилання:",
-            link
-        );
-
-    }
-
-}
 
 // ===============================
 // START
