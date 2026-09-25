@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uk">
+
 <head>
     <meta charset="UTF-8">
 
@@ -24,62 +25,126 @@
 
 <div class="container">
 
+    <!-- HEADER -->
+
     <header class="header">
-    <div class="header-brand">
-        <h1>🚙 FuelShare</h1>
-        <p>Облік витрат на поїздки</p>
-    </div>
 
-    <div class="header-actions">
+        <div class="header-brand">
 
-        <div class="theme-switch">
-            <input type="checkbox" id="themeToggle">
-            <label for="themeToggle"></label>
+            <h1>🚙 FuelShare</h1>
+
+            <p>Облік витрат на поїздки</p>
+
         </div>
 
-        <a href="admin.html" class="login-button">
-            🔐 Увійти
-        </a>
 
-    </div>
-</header>
+        <div class="header-actions">
+
+            <div class="theme-switch">
+
+                <input
+                    type="checkbox"
+                    id="themeToggle"
+                >
+
+                <label for="themeToggle"></label>
+
+            </div>
 
 
-    <section class="total-card">
+            <a
+                href="admin.html"
+                class="login-button"
+            >
+                🔐 Увійти
+            </a>
 
-        <span>Загальний борг</span>
+        </div>
+
+    </header>
+
+
+    <!-- WELCOME FOR NORMAL VISITORS -->
+
+    <section
+        class="welcome-section"
+        id="welcomeSection"
+    >
+
+        <div class="welcome-icon">
+            🚗
+        </div>
+
+        <h2>
+            Ласкаво просимо до FuelShare
+        </h2>
+
+        <p>
+            Це система обліку витрат на поїздки.
+        </p>
+
+        <p class="welcome-hint">
+            Щоб переглянути свій баланс та історію
+            поїздок, відкрийте персональне посилання.
+        </p>
+
+    </section>
+
+
+    <!-- TOTAL -->
+
+    <section
+        class="total-card"
+        id="totalCard"
+    >
+
+        <span id="totalTitle">
+            Ваш борг
+        </span>
 
         <strong id="totalDebt">
             0.00 €
         </strong>
 
-        <small>
-            Усі друзі разом
+        <small id="totalSubtitle">
+            Ваші поїздки
         </small>
 
     </section>
 
 
-    <section class="card">
+    <!-- FRIENDS -->
 
-    <div
-        class="section-title"
-        id="friendsTitle"
+    <section
+        class="card"
+        id="friendsSection"
     >
-        <h2>👥 Друзі</h2>
-    </div>
 
-    <div id="friendsList">
-        Завантаження...
-    </div>
+        <div
+            class="section-title"
+            id="friendsTitle"
+        >
+            <h2>👥 Друзі</h2>
+        </div>
+
+        <div id="friendsList">
+            Завантаження...
+        </div>
 
     </section>
 
 
-    <section class="card">
+    <!-- HISTORY -->
+
+    <section
+        class="card"
+        id="historySection"
+    >
 
         <div class="section-title">
+
             <h2>📋 Історія</h2>
+
         </div>
 
         <div id="tripsList">
@@ -88,6 +153,8 @@
 
     </section>
 
+
+    <!-- ADD BUTTON -->
 
     <button
         class="add-button"
@@ -124,12 +191,18 @@
 
         <form id="tripForm">
 
-          <label>
+            <label>
                 Друг
-            
-                <select id="friend" required>
-                    <option value="">Оберіть друга</option>
+
+                <select
+                    id="friend"
+                    required
+                >
+                    <option value="">
+                        Оберіть друга
+                    </option>
                 </select>
+
             </label>
 
 
@@ -141,6 +214,7 @@
                     id="tripDate"
                     required
                 >
+
             </label>
 
 
@@ -155,6 +229,7 @@
                     placeholder="15.00"
                     required
                 >
+
             </label>
 
 
@@ -166,6 +241,7 @@
                     id="comment"
                     placeholder="Наприклад, Kuopio → Joensuu"
                 >
+
             </label>
 
 
