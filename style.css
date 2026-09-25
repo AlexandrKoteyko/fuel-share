@@ -1130,3 +1130,88 @@ body:has(#themeToggle:checked) input[type="date"]::-webkit-calendar-picker-indic
         transition-duration: 0.01ms !important;
     }
 }
+/* =========================
+   HEADER
+   ========================= */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.header-brand {
+    min-width: 0;
+}
+
+.header-brand h1 {
+    margin: 0;
+}
+
+.header-brand p {
+    margin: 5px 0 0;
+}
+
+
+/* Header buttons */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+
+/* Login button */
+
+.login-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 40px;
+    padding: 0 16px;
+
+    border-radius: 12px;
+
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+
+    color: var(--text);
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 650;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.login-button:hover {
+    background: var(--surface-3);
+    border-color: var(--border-hover);
+
+    color: var(--text);
+
+    transform: translateY(-1px);
+}
+
+
+/* Mobile */
+
+@media (max-width: 600px) {
+
+    .header-actions {
+        gap: 7px;
+    }
+
+    .login-button {
+        min-height: 36px;
+        padding: 0 11px;
+
+        font-size: 13px;
+    }
+}
