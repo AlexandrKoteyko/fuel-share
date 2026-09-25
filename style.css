@@ -449,3 +449,33 @@ input:focus {
 
     margin-top: 15px;
 }
+.friend-profile {
+    text-align: center;
+
+    padding: 10px 0 5px;
+}
+
+
+.friend-profile-name {
+    font-size: 24px;
+
+    font-weight: 700;
+
+    margin-bottom: 20px;
+}
+
+
+.friend-profile-label {
+    color: #777;
+
+    font-size: 15px;
+
+    margin-bottom: 5px;
+}
+
+
+.friend-profile-debt {
+    font-size: 38px;
+
+    font-weight: 800;
+}
