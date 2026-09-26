@@ -717,17 +717,17 @@ tripForm.addEventListener(
 
 
         if (
-            !friendId ||
-            !date ||
-            amount <= 0
-        ) {
-
-            alert(
-                "Заповни друга, дату та суму."
-            );
-
-            return;
-        }
+                !friendId ||
+                !date ||
+                amount === 0 ||
+                Number.isNaN(amount)
+            ) {
+                alert(
+                    "Заповни друга, дату та вкажи суму, яка не дорівнює 0."
+                );
+            
+                return;
+            }
 
 
         console.log(
